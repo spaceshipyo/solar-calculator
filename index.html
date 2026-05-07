@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Solar Calculator Pro</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F9FAFB;
+  --card:#FFFFFF;
+  --border:#E5E7EB;
+  --primary:#2563EB;
+  --primary-light:#3B82F6;
+  --secondary:#22C55E;
+  --text:#111827;
+  --muted:#6B7280;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ── Header ── */
+.header{background:#FFFFFF;border-bottom:1px solid var(--border);box-shadow:0 2px 6px rgba(0,0,0,0.04);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:200}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--primary),var(--primary-light));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 4px 12px rgba(37,99,235,0.2);flex-shrink:0}
+.logo h1{font-size:17px;font-weight:800;color:var(--text);letter-spacing:-.3px}
+.header-btns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ── Tabs ── */
+.tabs-wrap{max-width:980px;margin:0 auto}
+.tabs{display:flex;gap:4px;padding:24px 24px 0;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{background:#F3F4F6;border:1px solid var(--border);color:var(--muted);padding:10px 18px;border-radius:10px 10px 0 0;cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap;transition:all .2s;border-bottom:none}
+.tab.active{background:#FFFFFF;border-color:var(--border);color:var(--primary);border-bottom:2px solid var(--primary)}
+.tab:hover:not(.active){color:var(--text);background:#fff;border-color:#d1d5db}
+
+/* ── Main ── */
+.main{padding:0 24px 60px;max-width:980px;margin:0 auto}
+.panel{display:none;background:var(--card);border:1px solid var(--border);border-radius:0 12px 12px 12px;padding:32px;box-shadow:0 4px 16px rgba(0,0,0,0.06)}
+.panel.active{display:block}
+
+/* ── Form ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:7px}
+label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+input,select{background:#FFFFFF;border:1px solid var(--border);color:#111827;padding:10px 14px;border-radius:8px;font-size:14px;outline:none;transition:border .2s,box-shadow .2s;width:100%}
+input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,0.15)}
+input::placeholder{color:#9CA3AF}
+select option{background:#FFFFFF;color:#111827}
+
+.sec-title{font-size:20px;font-weight:800;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.sec-title span{color:var(--primary)}
+.sec-sub{font-size:13px;color:var(--muted);margin-bottom:28px;line-height:1.5}
+
+.btn-calc{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border:none;padding:14px 32px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:24px;width:100%;transition:all .25s;letter-spacing:.2px;box-shadow:0 6px 20px rgba(37,99,235,0.3)}
+.btn-calc:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(37,99,235,0.4)}
+.btn-calc:active{transform:translateY(0)}
+
+/* ── Trust badge ── */
+.trust-badge{display:flex;align-items:center;gap:8px;background:#EFF6FF;border:1px solid #DBEAFE;border-radius:8px;padding:10px 16px;margin-bottom:20px;font-size:13px;color:#1D4ED8;font-weight:600}
+
+/* ── Results ── */
+.results{margin-top:32px;position:relative}
+.results-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px}
+.results-title{font-size:15px;font-weight:700;color:var(--primary)}
+.btn-dl{background:#fff;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;transition:all .2s;font-weight:600}
+.btn-dl:hover{border-color:var(--primary);color:var(--primary)}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
+.stat-card{background:#FFFFFF;border:1px solid var(--border);border-radius:14px;padding:20px 16px;text-align:center;transition:all 0.25s ease;cursor:default;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.stat-card:hover{border-color:var(--primary);box-shadow:0 6px 20px rgba(37,99,235,0.12);transform:translateY(-3px)}
+.stat-val{font-size:20px;font-weight:800;color:var(--primary);display:block}
+.stat-lbl{font-size:11px;color:var(--muted);margin-top:5px;display:block;font-weight:500}
+
+/* ── Blur / lock ── */
+.blur-zone{filter:blur(7px);pointer-events:none;user-select:none;transition:filter .4s}
+.blur-zone.unlocked{filter:none;pointer-events:auto;user-select:auto}
+.lock-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;background:rgba(255,255,255,0.85);border-radius:12px;backdrop-filter:blur(4px)}
+.lock-box{background:#FFFFFF;border:1px solid var(--border);border-radius:16px;padding:32px 28px;text-align:center;max-width:360px;width:92%;box-shadow:0 8px 40px rgba(0,0,0,0.12)}
+.lock-box h3{color:var(--primary);font-size:18px;margin-bottom:6px}
+.lock-box p{color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.6}
+.lock-form .field{margin-bottom:12px;text-align:left}
+.btn-unlock{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border:none;padding:12px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:4px;transition:all .2s;box-shadow:0 4px 14px rgba(37,99,235,0.3)}
+.btn-unlock:hover{opacity:.92;transform:translateY(-1px)}
+
+/* ── Tables ── */
+.tbl-wrap{overflow-x:auto;margin-top:18px;border-radius:10px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#F9FAFB;color:#374151;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:11px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border);font-weight:700}
+th:first-child{text-align:left}
+td{padding:10px 14px;border-top:1px solid var(--border);color:#111827;text-align:right;white-space:nowrap}
+td:first-child{text-align:left;color:var(--muted)}
+tr:hover td{background:#F9FAFB}
+tr.highlight td{color:var(--primary);font-weight:700}
+
+/* ── Chart ── */
+.chart-wrap{margin-top:22px;background:#FFFFFF;border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.chart-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+
+/* ── Assumptions ── */
+.assumptions{background:#F9FAFB;border:1px solid var(--border);border-radius:10px;padding:18px;margin-top:18px}
+.assumptions h4{color:var(--primary);font-size:13px;font-weight:700;margin-bottom:10px}
+.assumptions ul{list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+.assumptions li{background:#FFFFFF;border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;color:var(--muted)}
+
+/* ── Savings msg ── */
+.savings-msg{background:#EFF6FF;border:1px solid #DBEAFE;border-radius:10px;padding:16px 18px;margin-bottom:20px;font-size:15px;font-weight:700;color:var(--text);line-height:1.5}
+
+/* ── VFD cards ── */
+.vfd-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:20px}
+.vfd-opt{background:#FFFFFF;border-radius:14px;padding:20px;border:1px solid var(--border);transition:all 0.25s ease;cursor:default;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.vfd-opt:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.09);border-color:#d1d5db}
+.vfd-opt.recommended{border-color:var(--primary);box-shadow:0 4px 18px rgba(37,99,235,0.15)}
+.vfd-opt.recommended:hover{box-shadow:0 8px 28px rgba(37,99,235,0.22);transform:translateY(-4px)}
+.vfd-opt-title{font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.vfd-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.vfd-row:last-child{border:none}
+.vfd-key{color:var(--muted)}
+.vfd-val{color:#111827;font-weight:700}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-ok{background:#DCFCE7;color:#16a34a;border:1px solid #BBF7D0}
+.badge-warn{background:#FEF9C3;color:#854d0e;border:1px solid #FDE047}
+.badge-hi{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+
+/* ── Multi Motor ── */
+.motor-block{background:#FFFFFF;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:14px;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.motor-block:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,0.08)}
+.motor-block-title{font-size:13px;font-weight:700;color:var(--primary);margin-bottom:14px}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--primary);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;opacity:0;transform:translateY(20px);transition:all .3s;pointer-events:none;max-width:320px;box-shadow:0 4px 16px rgba(37,99,235,0.35)}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* ══════════════════
+   PRINT STYLES
+══════════════════ */
+@media print{
+  body{background:#ffffff!important;color:#000!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .header,.tabs-wrap,.btn-calc,.btn-dl,.lock-overlay,.header-btns,.toast{display:none!important}
+  .blur-zone{filter:none!important}
+  .panel{display:none!important}
+  .panel.active{display:block!important;border:none!important;padding:20px!important;background:#ffffff!important;color:#000!important}
+  .stat-card,.vfd-opt,.motor-block,.assumptions{background:#ffffff!important;color:#000!important;border:1px solid #ddd!important;break-inside:avoid;padding:14px!important}
+  .stat-val{color:#000!important}
+  .vfd-val{color:#000!important}
+  table td,table th{padding:8px 10px!important}
+  .chart-wrap{background:#f9f9f9!important;border:1px solid #ddd!important}
+  .savings-msg{background:#f0f7ff!important;border:1px solid #bdd7f5!important;color:#000!important}
+  .trust-badge{background:#f0f7ff!important;border:1px solid #bdd7f5!important;color:#1e3a8a!important}
+  .pdf-header{display:block!important}
+  .pdf-watermark{display:flex!important;opacity:0.05!important}
+  th{background:#f0f0f0!important;color:#374151!important}
+  a{color:#000}
+}
+
+/* PDF header (screen: hidden) */
+.pdf-header{display:none;margin-bottom:24px;padding-bottom:14px;border-bottom:2px solid var(--primary)}
+.pdf-header h2{font-size:22px;font-weight:800;color:var(--primary)}
+.pdf-header p{font-size:12px;color:#666;margin-top:3px}
+
+/* Watermark (screen: hidden) */
+.pdf-watermark{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:72px;font-weight:900;color:rgba(37,99,235,0.06);pointer-events:none;white-space:nowrap;z-index:0;letter-spacing:4px}
+</style>
+</head>
+<body>
+
+<!-- Watermark (print only) -->
+<div class="pdf-watermark">Solar Calculator Pro</div>
+
+<!-- ══ HEADER ══ -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">☀️</div>
+    <h1>Solar Calculator Pro</h1>
+  </div>
+  <div class="header-btns">
+    <select id="lang-switch" style="background:#F3F4F6;border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;outline:none">
+      <option value="en">🌐 English</option>
+      <option value="hi">🇮🇳 हिंदी</option>
+      <option value="mr">🇮🇳 मराठी</option>
+      <option value="pa">🇮🇳 ਪੰਜਾਬੀ</option>
+      <option value="ta">🇮🇳 தமிழ்</option>
+    </select>
+  </div>
+</div>
+
+<!-- ══ TABS ══ -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(0)">☀️ ROI Calculator</div>
+    <div class="tab" onclick="switchTab(1)">⚙️ VFD Calculator</div>
+    <div class="tab" onclick="switchTab(2)">🔧 Multi Motor</div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ══════════════ TAB 0: ROI ══════════════ -->
+<div class="panel active" id="panel0">
+  <div class="pdf-header"><h2>☀️ Solar Calculator Pro — ROI Report</h2><p>Generated on <span id="pdf-date-0"></span> &nbsp;|&nbsp; Prepared for: <span id="pdf-name-0"></span></p></div>
+
+  <div class="sec-title">☀️ <span>ROI Calculator</span></div>
+  <div class="sec-sub">Calculate your 25-year solar return on investment</div>
+  <div class="grid3">
+    <div class="field"><label id="label-cost">Project Cost — Excl. GST (₹)</label><input type="number" id="r-cost" placeholder="e.g. 350000" oninput="updateGSTDisplay()"></div>
+    <div class="field"><label id="label-gst">GST (%)</label><input type="number" id="r-gst" placeholder="e.g. 12" min="0" max="100" step="0.1" oninput="updateGSTDisplay()"></div>
+    <div class="field"><label id="label-size">System Size (kW)</label><input type="number" id="r-size" placeholder="e.g. 5"></div>
+  </div>
+  <div class="grid3" style="margin-top:14px">
+    <div class="field"><label id="label-rate">Current Electricity Rate (₹/unit)</label><input type="number" id="r-rate" placeholder="e.g. 8"></div>
+    <div class="field"><label id="label-tariff">Tariff Increase (%/yr)</label><input type="number" id="r-tariff" placeholder="e.g. 4" min="0" step="0.5"></div>
+    <div class="field"><label id="label-psh">Peak Sun Hours (hrs/day)</label><input type="number" id="r-psh" placeholder="e.g. 4.5" min="1" step="0.5"></div>
+  </div>
+  <div class="grid3" style="margin-top:14px">
+    <div class="field"><label id="label-losses">System Losses (%)</label><input type="number" id="r-losses" placeholder="e.g. 2" min="0" step="0.5"></div>
+    <div class="field"><label id="label-maint">Maintenance (%/yr of cost)</label><input type="number" id="r-maint" placeholder="e.g. 1" min="0" step="0.5"></div>
+    <div class="field">
+      <label>Total Cost incl. GST</label>
+      <div id="r-gst-display" style="background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:14px;font-weight:700;color:var(--primary);min-height:42px;display:flex;align-items:center">—</div>
+    </div>
+  </div>
+  <button class="btn-calc" id="calc-btn-roi" onclick="calcROI()" style="margin-top:20px">Calculate ROI →</button>
+
+  <div class="results" id="roi-results" style="display:none">
+    <div class="results-hdr">
+      <div class="results-title">📊 ROI Analysis</div>
+      <button class="btn-dl" onclick="printSection(0)">⬇ Download PDF</button>
+    </div>
+    <div class="trust-badge">⭐ Recommended Configuration &nbsp;|&nbsp; Optimized for Maximum Savings</div>
+    <div class="stat-grid" id="roi-stats"></div>
+    <div class="savings-msg" id="roi-msg"></div>
+    <div class="blur-zone" id="roi-blur">
+      <div class="chart-wrap"><div class="chart-title">25-Year Cumulative Savings vs Investment</div><canvas id="roi-chart" height="220"></canvas></div>
+      <div class="tbl-wrap">
+        <table id="roi-table">
+          <thead><tr><th>Year</th><th>Units</th><th>Rate (₹)</th><th>Savings (₹)</th><th>Maint (₹)</th><th>Net (₹)</th><th>Cumulative (₹)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="assumptions">
+        <h4>📋 Assumptions</h4>
+        <ul>
+          <li>Year 1 degradation: 1%</li>
+          <li>Year 2+ degradation: 0.4%/yr</li>
+          <li>System losses, tariff increase, maintenance & peak sun hours are editable above</li>
+          <li>ROI uses project cost excluding GST</li>
+        </ul>
+      </div>
+      <div id="roi-explanation" style="margin-top:16px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:16px 18px;font-size:13px;color:#166534;line-height:1.7"></div>
+    </div>
+    <div class="lock-overlay" id="roi-lock">
+      <div class="lock-box">
+        <div style="font-size:38px;margin-bottom:8px">🔒</div>
+        <h3 id="lock-title-roi">View Full Result</h3>
+        <p id="lock-desc-roi">Enter your details to continue</p>
+        <div class="lock-form">
+          <div class="field"><label for-key="fullName">Full Name</label><input type="text" id="r-name" placeholder="Your Name"></div>
+          <div class="field"><label for-key="phone">Phone Number</label><input type="tel" id="r-phone" placeholder="+91 XXXXX XXXXX"></div>
+          <div class="field"><label for-key="email">Email Address</label><input type="email" id="r-email" placeholder="you@email.com"></div>
+          <button class="btn-unlock" id="lock-btn-roi" onclick="submitLead('roi')">View Full Result →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ TAB 1: VFD ══════════════ -->
+<div class="panel" id="panel1">
+  <div class="pdf-header"><h2>⚙️ Solar Calculator Pro — VFD Report</h2><p>Generated on <span id="pdf-date-1"></span> &nbsp;|&nbsp; Prepared for: <span id="pdf-name-1"></span></p></div>
+
+  <div class="sec-title">⚙️ <span>VFD Calculator</span></div>
+  <div class="sec-sub">Get VFD & solar panel recommendations based on motor HP & current</div>
+  <div class="grid3">
+    <div class="field">
+      <label id="label-mtype">Motor Type</label>
+      <select id="v-mtype">
+        <option value="single">Single Phase</option>
+        <option value="three">Three Phase</option>
+      </select>
+    </div>
+    <div class="field">
+      <label id="label-hp">Motor HP</label>
+      <select id="v-hp">
+        <option value="0.5">0.5 HP</option>
+        <option value="1">1 HP</option>
+        <option value="1.5">1.5 HP</option>
+        <option value="2">2 HP</option>
+        <option value="3">3 HP</option>
+        <option value="5" selected>5 HP</option>
+        <option value="7.5">7.5 HP</option>
+        <option value="10">10 HP</option>
+        <option value="15">15 HP</option>
+        <option value="20">20 HP</option>
+        <option value="25">25 HP</option>
+        <option value="30">30 HP</option>
+        <option value="40">40 HP</option>
+        <option value="50">50 HP</option>
+        <option value="60">60 HP</option>
+        <option value="75">75 HP</option>
+        <option value="100">100 HP</option>
+        <option value="150">150 HP</option>
+      </select>
+    </div>
+    <div class="field"><label id="label-current">Motor Current (A)</label><input type="number" id="v-curr" placeholder="e.g. 9.5"></div>
+  </div>
+  <div style="margin-top:16px;max-width:320px">
+    <div class="field">
+      <label id="label-pantype-vfd">Panel Type</label>
+      <select id="v-pantype">
+        <option value="550">550W / 610W Panels</option>
+        <option value="725">725W Panels (High Power)</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="btn-calc" id="calc-btn-vfd" onclick="calcVFD()">Calculate VFD System →</button>
+
+  <div class="results" id="vfd-results" style="display:none">
+    <div class="results-hdr">
+      <div class="results-title">⚙️ VFD System Options</div>
+      <button class="btn-dl" onclick="printSection(1)">⬇ Download PDF</button>
+    </div>
+    <div class="trust-badge">⭐ Recommended Configuration &nbsp;|&nbsp; Optimized for Maximum Safety & Performance</div>
+    <div class="stat-grid" id="vfd-stats"></div>
+    <div class="blur-zone" id="vfd-blur">
+      <div class="vfd-options" id="vfd-options"></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>VFD (Current | DC Range)</th><th>Strings</th><th>Panels/Str</th><th>Total Panels</th><th>System Size</th><th>Design</th></tr></thead>
+          <tbody id="vfd-tbody"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:14px;padding:10px 14px;background:#EFF6FF;border:1px solid #DBEAFE;border-radius:8px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px">
+        <span style="color:var(--primary)">⚡</span> System designed based on standard solar VFD voltage range (500–900V DC)
+      </div>
+    </div>
+    <div class="lock-overlay" id="vfd-lock">
+      <div class="lock-box">
+        <div style="font-size:38px;margin-bottom:8px">🔒</div>
+        <h3 id="lock-title-vfd">View Full Design</h3>
+        <p id="lock-desc-vfd">Enter your details to continue</p>
+        <div class="lock-form">
+          <div class="field"><label for-key="fullName">Full Name</label><input type="text" id="v-name" placeholder="Your Name"></div>
+          <div class="field"><label for-key="phone">Phone Number</label><input type="tel" id="v-phone" placeholder="+91 XXXXX XXXXX"></div>
+          <div class="field"><label for-key="email">Email Address</label><input type="email" id="v-email" placeholder="you@email.com"></div>
+          <button class="btn-unlock" id="lock-btn-vfd" onclick="submitLead('vfd')">View Full Design →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ TAB 2: MULTI MOTOR ══════════════ -->
+<div class="panel" id="panel2">
+  <div class="pdf-header"><h2>🔧 Solar Calculator Pro — Multi Motor Report</h2><p>Generated on <span id="pdf-date-2"></span> &nbsp;|&nbsp; Prepared for: <span id="pdf-name-2"></span></p></div>
+
+  <div class="sec-title">🔧 <span>Multi Motor Designer</span></div>
+  <div class="sec-sub">Calculate total solar requirement for multiple motors — each motor's details are summed for total current & load</div>
+  <div class="field" style="margin-bottom:18px;max-width:220px">
+    <label id="label-num-motors">Number of Motors</label>
+    <select id="mm-count" onchange="buildMotorBlocks()">
+      <option value="2">2 Motors</option>
+      <option value="3">3 Motors</option>
+      <option value="4">4 Motors</option>
+      <option value="5">5 Motors</option>
+      <option value="6">6 Motors</option>
+    </select>
+  </div>
+  <div class="field" style="margin-bottom:18px;max-width:280px">
+    <label id="label-pantype-mm">Panel Type</label>
+    <select id="mm-pantype">
+      <option value="550">550W / 610W Panels</option>
+      <option value="725">725W Panels (High Power)</option>
+    </select>
+  </div>
+  <div id="mm-blocks"></div>
+  <button class="btn-calc" id="calc-btn-mm" onclick="calcMultiMotor()">Calculate Total Load →</button>
+
+  <div class="results" id="mm-results" style="display:none">
+    <div class="results-hdr">
+      <div class="results-title">🔧 Multi Motor Summary</div>
+      <button class="btn-dl" onclick="printSection(2)">⬇ Download PDF</button>
+    </div>
+    <div class="trust-badge">⭐ Total Solar System Design &nbsp;|&nbsp; Based on Combined Motor Load</div>
+    <div class="stat-grid" id="mm-stats"></div>
+    <div class="blur-zone" id="mm-blur">
+      <div id="mm-vfd-advice" style="margin-bottom:16px"></div>
+      <div class="vfd-options" id="mm-vfd-cards" style="margin-top:18px"></div>
+    </div>
+    <div class="lock-overlay" id="mm-lock">
+      <div class="lock-box">
+        <div style="font-size:38px;margin-bottom:8px">🔒</div>
+        <h3 id="lock-title-mm">View Full Design</h3>
+        <p id="lock-desc-mm">Enter your details to continue</p>
+        <div class="lock-form">
+          <div class="field"><label for-key="fullName">Full Name</label><input type="text" id="mm-name" placeholder="Your Name"></div>
+          <div class="field"><label for-key="phone">Phone Number</label><input type="tel" id="mm-phone" placeholder="+91 XXXXX XXXXX"></div>
+          <div class="field"><label for-key="email">Email Address</label><input type="email" id="mm-email" placeholder="you@email.com"></div>
+          <button class="btn-unlock" id="lock-btn-mm" onclick="submitLead('mm')">View Full Design →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── MULTI-LANGUAGE SUPPORT ──
+let currentLang='en';
+const TEXT={
+  en:{
+    roi:'ROI Calculator', vfd:'VFD Calculator', multi:'Multi Motor',
+    calculate:'Calculate',
+    cost:'Project Cost — Excl. GST (₹)', gst:'GST (%)',
+    size:'System Size (kW)', rate:'Electricity Rate (₹/unit)',
+    tariff:'Tariff Increase (%/yr)', psh:'Peak Sun Hours (hrs/day)',
+    losses:'System Losses (%)', maint:'Maintenance (%/yr)',
+    hp:'Motor HP', mtype:'Motor Type', current:'Motor Current (A)',
+    payback:'Payback Period', profit:'25-Year Profit', roiLbl:'Total ROI',
+    avgSavings:'Avg Annual Savings', annualUnits:'Annual Units (Yr 1)',
+    motorRating:'Motor Rating', motorCurrent:'Motor Current',
+    safeVfd:'Safe VFD Current', panelType:'Panel Type', stringDesign:'String Design',
+    suggestedVfd:'Suggested VFD', dcRange:'DC Voltage Range',
+    strings:'Strings', panelsPerStr:'Panels / String', totalPanels:'Total Panels',
+    systemSize:'System Size', design:'Design',
+    totalMotors:'Total Motors', motorLoad:'Motor Load',
+    estSolar:'Est. Solar Size', totalVfds:'Total VFDs',
+    systems:'Systems', panelsPerSys:'Panels per System',
+    recSetup:'Recommended Setup', finalPlan:'⚡ Final System Plan',
+    totalSystems:'Total Systems', totalStrings:'Total Strings',
+    singlePhase:'Single Phase', threePhase:'Three Phase',
+    yearLbl:'Year', savingsLbl:'Savings',
+    panelTypeLabel:'Panel Type', motorRpm:'Motor RPM', numMotors:'Number of Motors', phase:'Phase',
+    fullName:'Full Name', phone:'Phone Number', email:'Email Address', viewResult:'View Full Result', enterDetails:'Enter your details to continue'
+  },
+  hi:{
+    roi:'आरओआई कैलकुलेटर', vfd:'वीएफडी कैलकुलेटर', multi:'मल्टी मोटर',
+    calculate:'गणना करें',
+    cost:'प्रोजेक्ट लागत (GST छोड़कर)', gst:'GST (%)',
+    size:'सिस्टम साइज (kW)', rate:'बिजली दर (₹/यूनिट)',
+    tariff:'टैरिफ वृद्धि (%/वर्ष)', psh:'पीक सन आवर्स',
+    losses:'सिस्टम लॉस (%)', maint:'मेंटेनेंस (%)',
+    hp:'मोटर HP', mtype:'मोटर प्रकार', current:'करंट (A)',
+    payback:'पेबैक अवधि', profit:'25 साल का लाभ', roiLbl:'कुल ROI',
+    avgSavings:'औसत वार्षिक बचत', annualUnits:'वार्षिक यूनिट (वर्ष 1)',
+    motorRating:'मोटर रेटिंग', motorCurrent:'मोटर करंट',
+    safeVfd:'सुरक्षित VFD करंट', panelType:'पैनल प्रकार', stringDesign:'स्ट्रिंग डिज़ाइन',
+    suggestedVfd:'सुझाया VFD', dcRange:'DC वोल्टेज रेंज',
+    strings:'स्ट्रिंग्स', panelsPerStr:'पैनल/स्ट्रिंग', totalPanels:'कुल पैनल',
+    systemSize:'सिस्टम साइज', design:'डिज़ाइन',
+    totalMotors:'कुल मोटर', motorLoad:'मोटर लोड',
+    estSolar:'अनुमानित सोलर', totalVfds:'कुल VFD',
+    systems:'सिस्टम', panelsPerSys:'पैनल/सिस्टम',
+    recSetup:'अनुशंसित सेटअप', finalPlan:'⚡ अंतिम सिस्टम योजना',
+    totalSystems:'कुल सिस्टम', totalStrings:'कुल स्ट्रिंग्स',
+    singlePhase:'सिंगल फेज', threePhase:'थ्री फेज',
+    yearLbl:'वर्ष', savingsLbl:'बचत',
+    panelTypeLabel:'पैनल प्रकार', motorRpm:'मोटर RPM', numMotors:'मोटर की संख्या', phase:'फेज',
+    fullName:'पूरा नाम', phone:'फोन नंबर', email:'ईमेल पता', viewResult:'पूरा परिणाम देखें', enterDetails:'जारी रखने के लिए विवरण दर्ज करें'
+  },
+  mr:{
+    roi:'ROI कॅल्क्युलेटर', vfd:'VFD कॅल्क्युलेटर', multi:'मल्टी मोटर',
+    calculate:'हिशोब करा',
+    cost:'प्रकल्प खर्च (GST वगळून)', gst:'GST (%)',
+    size:'सिस्टम साइज (kW)', rate:'वीज दर (₹/युनिट)',
+    tariff:'दरवाढ (%/वर्ष)', psh:'सूर्य तास',
+    losses:'सिस्टम लॉस (%)', maint:'मेंटेनन्स (%)',
+    hp:'मोटर HP', mtype:'मोटर प्रकार', current:'करंट (A)',
+    payback:'परतावा कालावधी', profit:'25 वर्षे नफा', roiLbl:'एकूण ROI',
+    avgSavings:'सरासरी वार्षिक बचत', annualUnits:'वार्षिक युनिट (वर्ष 1)',
+    motorRating:'मोटर रेटिंग', motorCurrent:'मोटर करंट',
+    safeVfd:'सुरक्षित VFD करंट', panelType:'पॅनेल प्रकार', stringDesign:'स्ट्रिंग डिझाइन',
+    suggestedVfd:'सुचवलेला VFD', dcRange:'DC व्होल्टेज श्रेणी',
+    strings:'स्ट्रिंग्स', panelsPerStr:'पॅनेल/स्ट्रिंग', totalPanels:'एकूण पॅनेल',
+    systemSize:'सिस्टम साइज', design:'डिझाइन',
+    totalMotors:'एकूण मोटर', motorLoad:'मोटर लोड',
+    estSolar:'अंदाजे सोलर', totalVfds:'एकूण VFD',
+    systems:'सिस्टम', panelsPerSys:'पॅनेल/सिस्टम',
+    recSetup:'शिफारस केलेले सेटअप', finalPlan:'⚡ अंतिम सिस्टम योजना',
+    totalSystems:'एकूण सिस्टम', totalStrings:'एकूण स्ट्रिंग्स',
+    singlePhase:'सिंगल फेज', threePhase:'थ्री फेज',
+    yearLbl:'वर्ष', savingsLbl:'बचत',
+    panelTypeLabel:'पॅनेल प्रकार', motorRpm:'मोटर RPM', numMotors:'मोटर संख्या', phase:'फेज',
+    fullName:'पूर्ण नाव', phone:'फोन नंबर', email:'ईमेल पत्ता', viewResult:'संपूर्ण निकाल पहा', enterDetails:'सुरू ठेवण्यासाठी तपशील प्रविष्ट करा'
+  },
+  pa:{
+    roi:'ROI ਕੈਲਕੁਲੇਟਰ', vfd:'VFD ਕੈਲਕੁਲੇਟਰ', multi:'ਮਲਟੀ ਮੋਟਰ',
+    calculate:'ਹਿਸਾਬ ਕਰੋ',
+    cost:'ਪ੍ਰੋਜੈਕਟ ਲਾਗਤ (GST ਤੋਂ ਬਿਨਾਂ)', gst:'GST (%)',
+    size:'ਸਿਸਟਮ ਆਕਾਰ (kW)', rate:'ਬਿਜਲੀ ਦਰ (₹/ਯੂਨਿਟ)',
+    tariff:'ਟੈਰਿਫ ਵਾਧਾ (%/ਸਾਲ)', psh:'ਸੂਰਜ ਘੰਟੇ',
+    losses:'ਸਿਸਟਮ ਲਾਸ (%)', maint:'ਮੇਂਟੇਨੈਂਸ (%)',
+    hp:'ਮੋਟਰ HP', mtype:'ਮੋਟਰ ਕਿਸਮ', current:'ਕਰੰਟ (A)',
+    payback:'ਵਾਪਸੀ ਅਵਧੀ', profit:'25 ਸਾਲ ਦਾ ਮੁਨਾਫਾ', roiLbl:'ਕੁੱਲ ROI',
+    avgSavings:'ਔਸਤ ਸਾਲਾਨਾ ਬੱਚਤ', annualUnits:'ਸਾਲਾਨਾ ਯੂਨਿਟ (ਸਾਲ 1)',
+    motorRating:'ਮੋਟਰ ਰੇਟਿੰਗ', motorCurrent:'ਮੋਟਰ ਕਰੰਟ',
+    safeVfd:'ਸੁਰੱਖਿਅਤ VFD ਕਰੰਟ', panelType:'ਪੈਨਲ ਕਿਸਮ', stringDesign:'ਸਟ੍ਰਿੰਗ ਡਿਜ਼ਾਈਨ',
+    suggestedVfd:'ਸੁਝਾਇਆ VFD', dcRange:'DC ਵੋਲਟੇਜ ਰੇਂਜ',
+    strings:'ਸਟ੍ਰਿੰਗਸ', panelsPerStr:'ਪੈਨਲ/ਸਟ੍ਰਿੰਗ', totalPanels:'ਕੁੱਲ ਪੈਨਲ',
+    systemSize:'ਸਿਸਟਮ ਆਕਾਰ', design:'ਡਿਜ਼ਾਈਨ',
+    totalMotors:'ਕੁੱਲ ਮੋਟਰ', motorLoad:'ਮੋਟਰ ਲੋਡ',
+    estSolar:'ਅਨੁਮਾਨਿਤ ਸੋਲਰ', totalVfds:'ਕੁੱਲ VFD',
+    systems:'ਸਿਸਟਮ', panelsPerSys:'ਪੈਨਲ/ਸਿਸਟਮ',
+    recSetup:'ਸਿਫਾਰਿਸ਼ ਸੈੱਟਅੱਪ', finalPlan:'⚡ ਅੰਤਿਮ ਸਿਸਟਮ ਯੋਜਨਾ',
+    totalSystems:'ਕੁੱਲ ਸਿਸਟਮ', totalStrings:'ਕੁੱਲ ਸਟ੍ਰਿੰਗਸ',
+    singlePhase:'ਸਿੰਗਲ ਫੇਜ਼', threePhase:'ਤਿੰਨ ਫੇਜ਼',
+    yearLbl:'ਸਾਲ', savingsLbl:'ਬੱਚਤ',
+    panelTypeLabel:'ਪੈਨਲ ਕਿਸਮ', motorRpm:'ਮੋਟਰ RPM', numMotors:'ਮੋਟਰਾਂ ਦੀ ਗਿਣਤੀ', phase:'ਫੇਜ਼',
+    fullName:'ਪੂਰਾ ਨਾਮ', phone:'ਫ਼ੋਨ ਨੰਬਰ', email:'ਈਮੇਲ ਪਤਾ', viewResult:'ਪੂਰਾ ਨਤੀਜਾ ਦੇਖੋ', enterDetails:'ਜਾਰੀ ਰੱਖਣ ਲਈ ਵੇਰਵੇ ਦਰਜ ਕਰੋ'
+  },
+  ta:{
+    roi:'ROI கணக்கீடு', vfd:'VFD கணக்கீடு', multi:'மல்டி மோட்டார்',
+    calculate:'கணக்கிடு',
+    cost:'திட்ட செலவு (GST இல்லாமல்)', gst:'GST (%)',
+    size:'சிஸ்டம் அளவு (kW)', rate:'மின்சார விலை (₹/யூனிட்)',
+    tariff:'விலை உயர்வு (%/வருடம்)', psh:'சூரிய நேரம்',
+    losses:'சிஸ்டம் இழப்பு (%)', maint:'பராமரிப்பு (%)',
+    hp:'மோட்டார் HP', mtype:'மோட்டார் வகை', current:'மின்போக்கு (A)',
+    payback:'திரும்பப்பெறும் காலம்', profit:'25 ஆண்டு லாபம்', roiLbl:'மொத்த ROI',
+    avgSavings:'சராசரி வருடாந்திர சேமிப்பு', annualUnits:'வருடாந்திர அலகுகள் (ஆண்டு 1)',
+    motorRating:'மோட்டார் மதிப்பீடு', motorCurrent:'மோட்டார் மின்போக்கு',
+    safeVfd:'பாதுகாப்பான VFD மின்போக்கு', panelType:'பேனல் வகை', stringDesign:'ஸ்ட்ரிங் வடிவமைப்பு',
+    suggestedVfd:'பரிந்துரைக்கப்பட்ட VFD', dcRange:'DC மின்னழுத்த வரம்பு',
+    strings:'ஸ்ட்ரிங்கள்', panelsPerStr:'பேனல்/ஸ்ட்ரிங்', totalPanels:'மொத்த பேனல்கள்',
+    systemSize:'சிஸ்டம் அளவு', design:'வடிவமைப்பு',
+    totalMotors:'மொத்த மோட்டார்கள்', motorLoad:'மோட்டார் சுமை',
+    estSolar:'மதிப்பிடப்பட்ட சோலார்', totalVfds:'மொத்த VFD',
+    systems:'சிஸ்டங்கள்', panelsPerSys:'பேனல்/சிஸ்டம்',
+    recSetup:'பரிந்துரைக்கப்பட்ட அமைப்பு', finalPlan:'⚡ இறுதி சிஸ்டம் திட்டம்',
+    totalSystems:'மொத்த சிஸ்டங்கள்', totalStrings:'மொத்த ஸ்ட்ரிங்கள்',
+    singlePhase:'சிங்கிள் பேஸ்', threePhase:'மூன்று பேஸ்',
+    yearLbl:'ஆண்டு', savingsLbl:'சேமிப்பு',
+    panelTypeLabel:'பேனல் வகை', motorRpm:'மோட்டார் RPM', numMotors:'மோட்டார்களின் எண்ணிக்கை', phase:'கட்டம்',
+    fullName:'முழு பெயர்', phone:'தொலைபேசி எண்', email:'மின்னஞ்சல் முகவரி', viewResult:'முழு முடிவு காண்க', enterDetails:'தொடர உங்கள் விவரங்களை உள்ளிடுக'
+  }
+};
+
+// ─── VFD map (CG Solar VFD Data) ───
+const VFD_MAP_3PHASE=[
+  {hp:5,  current:9.5, dc:'500–780'},
+  {hp:7.5,current:13,  dc:'500–780'},
+  {hp:10, current:17,  dc:'500–780'},
+  {hp:15, current:24,  dc:'500–780'},
+  {hp:20, current:32,  dc:'500–900'},
+  {hp:25, current:38,  dc:'500–900'},
+  {hp:30, current:45,  dc:'500–900'},
+  {hp:40, current:60,  dc:'500–780'},
+  {hp:50, current:75,  dc:'500–780'},
+  {hp:60, current:91,  dc:'500–780'},
+  {hp:75, current:110, dc:'500–780'},
+  {hp:100,current:150, dc:'500–780'},
+  {hp:150,current:210, dc:'500–780'}
+];
+
+// ─── Panel type helper ───
+function getPanelSpec(panType){
+  if(panType==='725') return {w:725,panPerStr:17,strA:15,label:'725W'};
+  return {w:550,panPerStr:16,strA:10,label:'550W/610W'};
+}
+
+// ─── String design ───
+function getStringDesign(totalPanels, panelsPerString, strings){
+  const last = totalPanels % panelsPerString || panelsPerString;
+  if(strings===1) return `1 × ${last}`;
+  if(last===panelsPerString) return `${strings} × ${panelsPerString}`;
+  return `${strings-1} × ${panelsPerString} + 1 × ${last}`;
+}
+
+// ─── Helpers ───
+const fmt=n=>Math.round(n).toLocaleString('en-IN');
+const fmtK=n=>n>=1e7?'₹'+(n/1e7).toFixed(2)+'Cr':n>=1e5?'₹'+(n/1e5).toFixed(2)+'L':n>=1e3?'₹'+(n/1e3).toFixed(1)+'K':'₹'+Math.round(n);
+const now=()=>new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+let capturedData={};
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+function validate(ids){
+  let ok=true;
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el||el.value===''||isNaN(+el.value)||+el.value<0){
+      if(el){el.style.borderColor='#EF4444';el.addEventListener('input',()=>el.style.borderColor='',{once:true})}
+      ok=false;
+    }
+  });
+  if(!ok)showToast('Please fill all fields correctly');
+  return ok;
+}
+function validateLead(ids){
+  let ok=true;
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el||!el.value.trim()){
+      if(el){el.style.borderColor='#EF4444';el.addEventListener('input',()=>el.style.borderColor='',{once:true})}
+      ok=false;
+    }
+  });
+  if(!ok)showToast('Please fill your details');
+  return ok;
+}
+
+function sendToSheet(data){
+  const SHEET_URL="https://script.google.com/macros/s/AKfycbwJi4Iqt5lgFOE7UX-KjwAy-_cwUu6gQGVLkPPBCGexquo3Ldqa-CVYnFxHuDdwBDd-/exec";
+  fetch(SHEET_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)}).catch(()=>{});
+}
+
+// ─── Tab switch ───
+function switchTab(i){
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',i===j));
+  document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',i===j));
+}
+
+// ─── Print section ───
+function printSection(tabIdx){
+  switchTab(tabIdx);
+  const dateStr=now();
+  document.querySelectorAll('[id^="pdf-date-"]').forEach(el=>el.textContent=dateStr);
+
+  // Resolve user name from the active tab's name field
+  const nameFieldMap={0:'r-name',1:'v-name',2:'mm-name'};
+  const nameField=nameFieldMap[tabIdx];
+  const userName=(nameField&&document.getElementById(nameField)?.value.trim())||'';
+
+  // Populate "Prepared for" spans
+  document.querySelectorAll('[id^="pdf-name-"]').forEach(el=>{ el.textContent = userName || 'Customer'; });
+
+  // Set document title for PDF filename
+  const safeName = userName ? userName.replace(/\s+/g,'').replace(/[^a-zA-Z0-9]/g,'') : 'User';
+  const origTitle=document.title;
+  document.title='Solar_Report'+(safeName?'_'+safeName:'');
+
+  setTimeout(()=>{
+    window.print();
+    // Restore title after print dialog closes
+    setTimeout(()=>{ document.title=origTitle; },1000);
+  },150);
+}
+
+// ════════════════════════════════════
+// TAB 0 — ROI CALCULATOR
+// ════════════════════════════════════
+let roiRows=[];
+function updateGSTDisplay(){
+  const baseInput=document.getElementById('r-cost').value;
+  const base=baseInput===''?0:parseFloat(baseInput);
+  const gst=+document.getElementById('r-gst').value||0;
+  const total=base*(1+gst/100);
+  const el=document.getElementById('r-gst-display');
+  if(el) el.textContent=base>0?'₹'+Math.round(total).toLocaleString('en-IN'):'—';
+}
+updateGSTDisplay();
+
+function calcROI(){
+  if(!validate(['r-cost','r-size','r-rate']))return;
+  const baseCost=+document.getElementById('r-cost').value;
+  const gst=+document.getElementById('r-gst').value||0;
+  const gstAmount=baseCost*(gst/100);
+  const totalCost=baseCost+gstAmount;
+  // ROI uses baseCost only — GST is display only
+  const cost=baseCost;
+  const size=+document.getElementById('r-size').value;
+  const rate=+document.getElementById('r-rate').value;
+  const tariffInput=document.getElementById('r-tariff').value;
+  const tariffInc=(tariffInput===''?4:parseFloat(tariffInput))/100;
+  const pshInput=document.getElementById('r-psh').value;
+  const psh=pshInput===''?4.5:parseFloat(pshInput);
+  const lossInput=document.getElementById('r-losses').value;
+  const lossAdj=1-((lossInput===''?2:parseFloat(lossInput))/100);
+  const maintInput=document.getElementById('r-maint').value;
+  const maintPct=(maintInput===''?1:parseFloat(maintInput))/100;
+  const baseUnits=size*psh*365*lossAdj;
+
+  roiRows=[];let cum=0,payback=null,pbFrac=null,r=rate;
+  for(let yr=1;yr<=25;yr++){
+    const eff=yr===1?(1-0.01):Math.pow(1-0.004,yr-1)*(1-0.01);
+    const units=Math.round(baseUnits*eff);
+    const savings=units*r;
+    const maint=cost*maintPct;
+    const net=savings-maint;
+    const prev=cum;cum+=net;
+    if(cum>=cost&&!payback){
+      payback=yr;
+      pbFrac=((yr-1)+(cost-prev)/net).toFixed(1);
+    }
+    roiRows.push({yr,units,r:r.toFixed(2),savings,maint,net,cum});
+    r*=(1+tariffInc);
+  }
+  const totSav=roiRows.reduce((s,x)=>s+x.savings,0);
+  const totMaint=roiRows.reduce((s,x)=>s+x.maint,0);
+  const profit=totSav-totMaint-cost;
+  const roi=((profit/cost)*100).toFixed(1);
+  const pbLow=pbFrac||'>25';
+
+  const t=TEXT[currentLang]||TEXT.en;
+  document.getElementById('roi-stats').innerHTML=`
+    <div class="stat-card"><span class="stat-val">~${pbLow} yrs</span><span class="stat-lbl">${t.payback}</span></div>
+    <div class="stat-card"><span class="stat-val">${fmtK(profit)}</span><span class="stat-lbl">${t.profit}</span></div>
+    <div class="stat-card"><span class="stat-val">${roi}%</span><span class="stat-lbl">${t.roiLbl}</span></div>
+    <div class="stat-card"><span class="stat-val">${fmtK(totSav/25)}</span><span class="stat-lbl">${t.avgSavings}</span></div>
+    <div class="stat-card"><span class="stat-val">${Math.round(baseUnits)}</span><span class="stat-lbl">${t.annualUnits}</span></div>
+    ${gst>0?`<div class="stat-card"><span class="stat-val">${fmtK(totalCost)}</span><span class="stat-lbl">${t.gst.replace('(%)','')} incl. ${gst}%</span></div>`:''}
+  `;
+  document.getElementById('roi-msg').innerHTML=`🌟 ${t.savingsLbl}: <span style="color:var(--primary);font-size:18px">${fmtK(profit)}</span> — 25 years, ${size} kW`;
+
+  document.querySelector('#roi-table tbody').innerHTML=roiRows.map(x=>`
+    <tr ${x.yr===payback?'class="highlight"':''}>
+      <td>Year ${x.yr}</td><td>${fmt(x.units)}</td><td>₹${x.r}</td>
+      <td>₹${fmt(x.savings)}</td><td>₹${fmt(x.maint)}</td>
+      <td style="color:${x.net>0?'#16a34a':'#DC2626'}">₹${fmt(x.net)}</td>
+      <td style="color:${x.cum>=cost?'#16a34a':x.cum>0?'#d97706':'#DC2626'}">₹${fmt(x.cum)}</td>
+    </tr>`).join('');
+
+  drawROIChart(cost);
+  capturedData.roi={cost,size,rate,payback:pbFrac,profit:Math.round(profit),roi,gst,totalCost,yearlySavings:Math.round(totSav/25)};
+  const expEl=document.getElementById('roi-explanation');
+  if(expEl) expEl.innerHTML=`
+    ✅ Your system will recover its cost in approximately <strong>${pbLow} years</strong>.<br>
+    📈 Over 25 years, estimated savings can reach <strong>${fmtK(totSav)}</strong>.<br>
+    ℹ️ Calculation uses base project cost (excluding GST) of <strong>${fmtK(cost)}</strong>.
+  `;
+  document.getElementById('roi-results').style.display='block';
+  document.getElementById('roi-lock').style.display='flex';
+  document.getElementById('roi-blur').classList.remove('unlocked');
+}
+
+function drawROIChart(cost){
+  const canvas=document.getElementById('roi-chart');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  canvas.width=canvas.offsetWidth||700;canvas.height=220;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const W=canvas.width,H=canvas.height,pad=60;
+  const vals=roiRows.map(x=>x.cum);
+  const minV=Math.min(0,...vals),maxV=Math.max(...vals,cost);
+  const scX=(W-pad*2)/24,scY=(H-pad*2)/(maxV-minV);
+  const px=x=>pad+x*scX,py=y=>H-pad-(y-minV)*scY;
+
+  ctx.strokeStyle='#E5E7EB';ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    const yv=minV+(maxV-minV)*i/5;
+    ctx.beginPath();ctx.moveTo(pad,py(yv));ctx.lineTo(W-pad,py(yv));ctx.stroke();
+    ctx.fillStyle='#9CA3AF';ctx.font='10px sans-serif';ctx.textAlign='right';
+    ctx.fillText(fmtK(Math.round(yv)),pad-4,py(yv)+4);
+  }
+  if(minV<0){
+    ctx.setLineDash([3,3]);ctx.strokeStyle='#D1D5DB';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pad,py(0));ctx.lineTo(W-pad,py(0));ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.setLineDash([8,5]);ctx.strokeStyle='#EF4444';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(pad,py(cost));ctx.lineTo(W-pad,py(cost));ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#EF4444';ctx.font='10px sans-serif';ctx.textAlign='left';
+  ctx.fillText('Investment '+fmtK(cost),pad+4,py(cost)-5);
+
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(37,99,235,0.18)');
+  grad.addColorStop(1,'rgba(37,99,235,0.02)');
+  ctx.beginPath();ctx.moveTo(px(0),py(vals[0]));
+  vals.forEach((v,i)=>ctx.lineTo(px(i),py(v)));
+  ctx.lineTo(px(24),py(minV));ctx.lineTo(px(0),py(minV));
+  ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+
+  ctx.beginPath();ctx.moveTo(px(0),py(vals[0]));
+  vals.forEach((v,i)=>ctx.lineTo(px(i),py(v)));
+  ctx.strokeStyle='#2563EB';ctx.lineWidth=2.5;ctx.stroke();
+
+  [0,4,9,14,19,24].forEach(i=>{
+    ctx.beginPath();ctx.arc(px(i),py(vals[i]),4,0,Math.PI*2);
+    ctx.fillStyle='#2563EB';ctx.fill();
+  });
+  ctx.fillStyle='#9CA3AF';ctx.font='10px sans-serif';ctx.textAlign='center';
+  [1,5,10,15,20,25].forEach(yr=>ctx.fillText('Y'+yr,px(yr-1),H-pad+14));
+}
+
+window.addEventListener('resize',()=>{if(roiRows.length)drawROIChart(+document.getElementById('r-cost').value||350000)});
+
+// ════════════════════════════════════
+// TAB 1 — VFD CALCULATOR
+// ════════════════════════════════════
+function calcPanelStrings(hp, curr, panType){
+  const spec = getPanelSpec(panType || '550');
+  if(hp <= 5){
+    const panPerStr = spec.panPerStr;
+    return { strings:1, panPerStr, totalPanels:panPerStr, spec, smallOverride:true };
+  }
+  const strings = Math.ceil(curr / spec.strA);
+  const panPerStr = spec.panPerStr;
+  const totalPanels = strings * panPerStr;
+  return { strings, panPerStr, totalPanels, spec, smallOverride:false };
+}
+
+function get3PhaseVFDs(motorCurr){
+  const valid=VFD_MAP_3PHASE.filter(v=>v.current>=motorCurr);
+  const costOpt=valid[0]||VFD_MAP_3PHASE[VFD_MAP_3PHASE.length-1];
+  const rec=valid[1]||valid[0]||VFD_MAP_3PHASE[VFD_MAP_3PHASE.length-1];
+  const hi=valid[2]||valid[1]||valid[0]||VFD_MAP_3PHASE[VFD_MAP_3PHASE.length-1];
+  return{costOpt,rec,hi};
+}
+
+function calcVFD(){
+  const t=TEXT[currentLang]||TEXT.en;
+  const hp=+document.getElementById('v-hp').value;
+  const curr=+document.getElementById('v-curr').value;
+  const mtype=document.getElementById('v-mtype').value;
+  const panType=document.getElementById('v-pantype').value;
+  if(!curr||curr<=0){showToast('Please enter motor current');return}
+
+  const reqA=curr;
+  const spec=getPanelSpec(panType);
+
+  // ── SINGLE PHASE BRANCH ──
+  if(mtype==='single'){
+    document.getElementById('vfd-stats').innerHTML=`
+      <div class="stat-card"><span class="stat-val">${curr} A</span><span class="stat-lbl">${t.motorCurrent}</span></div>
+      <div class="stat-card"><span class="stat-val">${t.singlePhase}</span><span class="stat-lbl">${t.mtype}</span></div>
+      <div class="stat-card"><span class="stat-val">250–500V</span><span class="stat-lbl">${t.dcRange}</span></div>
+      <div class="stat-card"><span class="stat-val">${spec.label}</span><span class="stat-lbl">${t.panelType}</span></div>
+    `;
+
+    let cardsHTML='',tbodyHTML='';
+
+    if(curr>16){
+      cardsHTML=`
+        <div style="grid-column:1/-1;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:24px;text-align:center">
+          <div style="font-size:32px;margin-bottom:10px">⚠️</div>
+          <div style="font-size:16px;font-weight:700;color:#DC2626;margin-bottom:8px">No single phase solar VFD available for this motor</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Motor current (${curr}A) exceeds the maximum supported by single phase solar VFDs.</div>
+          <div style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:8px">Available single phase options:</div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+            <span class="badge badge-ok" style="font-size:13px;padding:6px 16px">3 HP — 9.5A</span>
+            <span class="badge badge-ok" style="font-size:13px;padding:6px 16px">5 HP — ~16A</span>
+          </div>
+        </div>
+        <div style="grid-column:1/-1;background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;padding:12px 16px;font-size:13px;color:var(--muted)">
+          ℹ️ <strong style="color:#92400E">Note:</strong> Single phase solar VFD is available only up to 5 HP. For higher load, convert to three phase system.
+        </div>`;
+      tbodyHTML=`<tr><td colspan="7" style="text-align:center;color:#DC2626;padding:16px">No single phase VFD available for ${curr}A motor. Max supported: ~16A (5 HP)</td></tr>`;
+    } else {
+      const spOpts=[];
+      if(curr<9){
+        spOpts.push({label:'✅ Recommended',badge:'badge-ok',vfdLabel:'3 HP (9.5A)',panMin:7,panMax:8,rec:true});
+      } else {
+        spOpts.push({label:'⚠️ Borderline',badge:'badge-warn',vfdLabel:'3 HP (9.5A)',panMin:7,panMax:8,rec:false});
+        spOpts.push({label:'✅ Recommended',badge:'badge-ok',vfdLabel:'5 HP (16A)',panMin:8,panMax:9,rec:true});
+      }
+      spOpts.forEach(o=>{
+        const panels=o.panMax;
+        const sysKW=(panels*spec.w/1000).toFixed(2);
+        cardsHTML+=`
+          <div class="vfd-opt${o.rec?' recommended':''}">
+            <div class="vfd-opt-title"><span class="badge ${o.badge}">${o.label}</span></div>
+            <div class="vfd-row"><span class="vfd-key">${t.suggestedVfd}</span><span class="vfd-val">${o.vfdLabel}</span></div>
+            <div class="vfd-row"><span class="vfd-key">${t.strings}</span><span class="vfd-val">1</span></div>
+            <div class="vfd-row"><span class="vfd-key">${t.totalPanels}</span><span class="vfd-val">${o.panMin}–${o.panMax}</span></div>
+            <div class="vfd-row"><span class="vfd-key">${t.panelType}</span><span class="vfd-val">${spec.label}</span></div>
+            <div class="vfd-row"><span class="vfd-key">${t.systemSize}</span><span class="vfd-val">~${sysKW} kW</span></div>
+            <div class="vfd-row"><span class="vfd-key">${t.design}</span><span class="vfd-val">1 × ${o.panMax}</span></div>
+          </div>`;
+        tbodyHTML+=`<tr ${o.rec?'class="highlight"':''}>
+          <td>${o.label}</td><td>${o.vfdLabel}</td><td>1</td><td>${o.panMax}</td>
+          <td>${o.panMax}</td><td>${sysKW} kW</td><td>1×${o.panMax}</td>
+        </tr>`;
+      });
+      cardsHTML+=`
+        <div style="grid-column:1/-1;background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;padding:12px 16px;font-size:13px;color:var(--muted)">
+          ℹ️ <strong style="color:#92400E">Note:</strong> Single phase solar VFD is available only up to 5 HP. For higher load, convert to three phase system.
+        </div>`;
+    }
+
+    document.getElementById('vfd-options').innerHTML=cardsHTML;
+    document.getElementById('vfd-tbody').innerHTML=tbodyHTML;
+    capturedData.vfd={hp,curr,reqA,mtype,panType};
+
+  } else {
+    // ── THREE PHASE BRANCH ──
+    const {costOpt,rec,hi}=get3PhaseVFDs(curr);
+    const {strings, panPerStr, totalPanels, smallOverride}=calcPanelStrings(hp, curr, panType);
+    const sysKW=(totalPanels*spec.w/1000).toFixed(2);
+    const vfdReqA=(curr*1.5).toFixed(1);
+    const panPerStrDisplay = smallOverride ? `14–${panPerStr}` : `${panPerStr}`;
+    const totalDisplay = totalPanels;
+    const designDisplay = smallOverride
+      ? `1 × ${panPerStr}`
+      : getStringDesign(totalPanels, panPerStr, strings);
+
+    const stringDesignLabel = smallOverride
+      ? `1 String (14–${panPerStr} Panels)`
+      : `${strings} Strings × ${panPerStrDisplay} Panels`;
+
+    document.getElementById('vfd-stats').innerHTML=`
+      <div class="stat-card"><span class="stat-val">${hp} HP</span><span class="stat-lbl">${t.motorRating}</span></div>
+      <div class="stat-card"><span class="stat-val">${curr} A</span><span class="stat-lbl">${t.motorCurrent}</span></div>
+      <div class="stat-card"><span class="stat-val">${vfdReqA} A</span><span class="stat-lbl">${t.safeVfd}</span></div>
+      <div class="stat-card"><span class="stat-val">${spec.label}</span><span class="stat-lbl">${t.panelType}</span></div>
+      <div class="stat-card"><span class="stat-val">${stringDesignLabel}</span><span class="stat-lbl">${t.stringDesign}</span></div>
+    `;
+
+    const vfds=[
+      {v:costOpt,label:'💰 Cost Optimized',badge:'badge-warn',cls:''},
+      {v:rec,    label:'✅ Recommended',   badge:'badge-ok', cls:' recommended'},
+      {v:hi,     label:'🔥 High Safety',   badge:'badge-hi', cls:''}
+    ];
+
+    let cardsHTML=vfds.map(({v,label,badge,cls})=>`
+      <div class="vfd-opt${cls}">
+        <div class="vfd-opt-title"><span class="badge ${badge}">${label}</span></div>
+        <div class="vfd-row"><span class="vfd-key">${t.suggestedVfd}</span><span class="vfd-val">${v.hp} HP (${v.current}A)</span></div>
+        <div class="vfd-row"><span class="vfd-key">${t.dcRange}</span><span class="vfd-val">${v.dc}</span></div>
+        <div class="vfd-row"><span class="vfd-key">${t.strings}</span><span class="vfd-val">${strings}</span></div>
+        <div class="vfd-row"><span class="vfd-key">${t.panelsPerStr}</span><span class="vfd-val">${panPerStrDisplay}</span></div>
+        <div class="vfd-row"><span class="vfd-key">${t.totalPanels}</span><span class="vfd-val">${totalDisplay}</span></div>
+        <div class="vfd-row"><span class="vfd-key">${t.systemSize}</span><span class="vfd-val">${sysKW} kW</span></div>
+        <div class="vfd-row"><span class="vfd-key">${t.design}</span><span class="vfd-val">${designDisplay}</span></div>
+      </div>`).join('');
+
+    cardsHTML+=`
+      <div style="grid-column:1/-1;background:#EFF6FF;border:1px solid #DBEAFE;border-radius:8px;padding:12px 16px;font-size:13px;color:var(--muted)">
+        🔵 <strong style="color:#1D4ED8">VFD selected based on motor current and practical safety margins.</strong>
+      </div>
+      <div style="grid-column:1/-1;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:10px 16px;font-size:12px;color:#15803D;font-weight:600">
+        ✅ Recommended VFD selected above safe current margin — ensuring reliable long-term motor protection.
+      </div>`;
+
+    const tbodyHTML=vfds.map(({v,label,cls})=>`
+      <tr ${cls.includes('recommended')?'class="highlight"':''}>
+        <td>${label}</td>
+        <td>${v.hp} HP (${v.current}A) | ${v.dc}</td>
+        <td>${strings}</td><td>${panPerStrDisplay}</td>
+        <td>${totalDisplay}</td><td>${sysKW} kW</td><td>${designDisplay}</td>
+      </tr>`).join('');
+
+    document.getElementById('vfd-options').innerHTML=cardsHTML;
+    document.getElementById('vfd-tbody').innerHTML=tbodyHTML;
+    capturedData.vfd={hp,curr,vfdReqA,mtype,panType,strings,panPerStr,totalPanels,smallOverride,designDisplay};
+  }
+  document.getElementById('vfd-results').style.display='block';
+  document.getElementById('vfd-lock').style.display='flex';
+  document.getElementById('vfd-blur').classList.remove('unlocked');
+}
+
+// ════════════════════════════════════
+// TAB 2 — MULTI MOTOR
+// ════════════════════════════════════
+function buildMotorBlocks(){
+  const t=TEXT[currentLang]||TEXT.en;
+  const n=+document.getElementById('mm-count').value;
+  document.getElementById('mm-blocks').innerHTML=Array.from({length:n},(_,i)=>`
+    <div class="motor-block">
+      <div class="motor-block-title">Motor ${i+1}</div>
+      <div class="grid3">
+        <div class="field"><label>HP</label>
+          <input type="number" id="mm-hp-${i+1}" placeholder="e.g. 1" min="0.5" step="0.1">
+        </div>
+        <div class="field"><label>Current (A)</label><input type="number" id="mm-curr-${i+1}" placeholder="e.g. 9.5"></div>
+        <div class="field"><label>${t.phase}</label>
+          <select id="mm-ph-${i+1}"><option value="single">Single Phase</option><option value="three" selected>Three Phase</option></select>
+        </div>
+        <div class="field"><label>${t.motorRpm}</label>
+          <select class="mm-rpm" id="mm-rpm-${i+1}">
+            <option value="1440">1440 RPM</option>
+            <option value="2880">2880 RPM</option>
+            <option value="960">960 RPM</option>
+            <option value="720">720 RPM</option>
+          </select>
+        </div>
+      </div>
+    </div>`).join('');
+  document.getElementById('mm-results').style.display='none';
+}
+buildMotorBlocks();
+
+function calcMultiMotor(){
+  const t=TEXT[currentLang]||TEXT.en;
+  const n=+document.getElementById('mm-count').value;
+  const panType=document.getElementById('mm-pantype').value;
+  const spec=getPanelSpec(panType);
+
+  // ── STEP 2: Read all motor inputs including RPM ──
+  let totalKW=0, valid=true;
+  const motors=[];
+  for(let i=1;i<=n;i++){
+    const hp=+document.getElementById(`mm-hp-${i}`).value;
+    const curr=+document.getElementById(`mm-curr-${i}`).value;
+    const ph=document.getElementById(`mm-ph-${i}`).value;
+    const rpm=parseInt(document.getElementById(`mm-rpm-${i}`).value)||1440;
+    if(!hp||!curr){valid=false;break}
+    totalKW+=hp*0.746;
+    motors.push({hp,curr,ph,rpm});
+  }
+  if(!valid){showToast('Please fill all motor details');return}
+
+  const estSolar=+(totalKW*1.4).toFixed(2);
+  const totalCurrAll=motors.reduce((s,m)=>s+m.curr,0);
+
+  // ── STEP 3: Group motors by phase + RPM ──
+  // Rule: Same phase + same RPM → ONE VFD group
+  //       Different RPM or different phase → SEPARATE group
+  const groups={};
+  motors.forEach(m=>{
+    const key=m.ph+'_'+m.rpm;
+    if(!groups[key]) groups[key]={phase:m.ph, rpm:m.rpm, totalCurrent:0, totalKW:0, motors:0};
+    groups[key].totalCurrent+=m.curr;
+    groups[key].totalKW+=m.hp*0.746;
+    groups[key].motors+=1;
+  });
+
+  // ── STEP 4: Process each group with existing VFD logic ──
+  // Single-phase system packing (unchanged logic)
+  function buildSpSystems(totalSpA){
+    const systems=[];
+    let remaining=totalSpA;
+    while(remaining>0){
+      if(remaining>16){
+        systems.push({hp:5,curr:16,label:'5 HP',panRange:'8–9',panels:9});
+        remaining-=16;
+      } else if(remaining>9){
+        systems.push({hp:5,curr:remaining,label:'5 HP',panRange:'8–9',panels:9});
+        remaining=0;
+      } else {
+        systems.push({hp:3,curr:remaining,label:'3 HP',panRange:'7–8',panels:8});
+        remaining=0;
+      }
+    }
+    return systems;
+  }
+
+  let grandPanels=0, totalVFDs=0, totalSystems=0, totalStrings=0;
+  let blurHTML='', planRows='', sysIdx=0;
+
+  // Sort groups: single phase first, then three phase; within same phase sort by RPM
+  const sortedGroups=Object.values(groups).sort((a,b)=>{
+    if(a.phase!==b.phase) return a.phase==='single'?-1:1;
+    return a.rpm-b.rpm;
+  });
+
+  sortedGroups.forEach(g=>{
+    const phaseLabel=g.phase==='single'?t.singlePhase:t.threePhase;
+    const phaseColor=g.phase==='single'?'#16a34a':'#1D4ED8';
+    const phaseBg=g.phase==='single'?'#DCFCE7':'#EFF6FF';
+    const headerColor=g.phase==='single'?'#15803d':'#1e40af';
+
+    blurHTML+=`<div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">${phaseLabel} — ${g.rpm} RPM (${g.motors} Motor${g.motors>1?'s':''})</div>`;
+
+    if(g.phase==='single'){
+      // ── Single phase: pack into sub-systems ──
+      const spSystems=buildSpSystems(g.totalCurrent);
+      const spPanels=spSystems.reduce((s,sys)=>s+sys.panels,0);
+      grandPanels+=spPanels;
+      totalVFDs+=spSystems.length;
+      totalSystems+=spSystems.length;
+      totalStrings+=spSystems.length;
+
+      blurHTML+=`<div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">`;
+      spSystems.forEach((sys,idx)=>{
+        sysIdx++;
+        blurHTML+=`
+          <div class="vfd-opt" style="border-color:${idx===0?'var(--primary)':'var(--border)'}">
+            <div class="vfd-opt-title" style="margin-bottom:10px">
+              <span class="badge badge-ok" style="font-size:12px">System ${sysIdx} — ${g.rpm} RPM</span>
+            </div>
+            <div class="vfd-row"><span class="vfd-key">${t.suggestedVfd}</span><span class="vfd-val">${sys.label}</span></div>
+            <div class="vfd-row"><span class="vfd-key">${t.motorLoad}</span><span class="vfd-val">${sys.curr.toFixed(1)} A</span></div>
+            <div class="vfd-row"><span class="vfd-key">${t.totalPanels}</span><span class="vfd-val">${sys.panRange}</span></div>
+          </div>`;
+        planRows+=`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+          <span style="width:22px;height:22px;background:${phaseBg};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:${phaseColor};flex-shrink:0">${sysIdx}</span>
+          <span style="font-size:13px;color:var(--text);font-weight:600">${phaseLabel} ${g.rpm} RPM — ${sys.label} VFD &nbsp;→&nbsp; <span style="color:var(--primary)">${sys.panRange} Panels</span></span>
+        </div>`;
+      });
+      blurHTML+=`</div>`;
+      blurHTML+=`
+        <div class="stat-grid" style="margin-bottom:22px">
+          <div class="stat-card"><span class="stat-val">${g.motors}</span><span class="stat-lbl">${t.totalMotors}</span></div>
+          <div class="stat-card"><span class="stat-val">${g.totalCurrent.toFixed(1)} A</span><span class="stat-lbl">${t.motorLoad}</span></div>
+          <div class="stat-card"><span class="stat-val">${spSystems.length}</span><span class="stat-lbl">${t.systems}</span></div>
+          <div class="stat-card"><span class="stat-val">${spPanels}</span><span class="stat-lbl">${t.totalPanels} (1Ø)</span></div>
+        </div>`;
+
+    } else {
+      // ── Three phase: single VFD per group ──
+      const strings=Math.ceil(g.totalCurrent/spec.strA);
+      const panels=strings*spec.panPerStr;
+      const design=getStringDesign(panels,spec.panPerStr,strings);
+      const {costOpt,rec,hi}=get3PhaseVFDs(g.totalCurrent);
+      grandPanels+=panels;
+      totalVFDs+=1;
+      totalSystems+=1;
+      totalStrings+=strings;
+      sysIdx++;
+
+      const mmVfds=[
+        {v:costOpt,label:'💰 Cost Optimized',badge:'badge-warn',cls:''},
+        {v:rec,    label:'✅ Recommended',   badge:'badge-ok', cls:' recommended'},
+        {v:hi,     label:'🔥 High Safety',   badge:'badge-hi', cls:''}
+      ];
+      blurHTML+=`<div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">`;
+      blurHTML+=mmVfds.map(({v,label,badge,cls})=>`
+        <div class="vfd-opt${cls}">
+          <div class="vfd-opt-title"><span class="badge ${badge}">${label}</span></div>
+          <div class="vfd-row"><span class="vfd-key">${t.suggestedVfd}</span><span class="vfd-val">${v.hp} HP (${v.current}A)</span></div>
+          <div class="vfd-row"><span class="vfd-key">${t.motorLoad}</span><span class="vfd-val">${g.totalCurrent.toFixed(1)} A</span></div>
+          <div class="vfd-row"><span class="vfd-key">${t.strings}</span><span class="vfd-val">${strings}</span></div>
+          <div class="vfd-row"><span class="vfd-key">${t.totalPanels}</span><span class="vfd-val">${panels}</span></div>
+          <div class="vfd-row"><span class="vfd-key">${t.design}</span><span class="vfd-val">${design}</span></div>
+        </div>`).join('');
+      blurHTML+=`</div>`;
+      blurHTML+=`
+        <div class="stat-grid" style="margin-bottom:22px">
+          <div class="stat-card"><span class="stat-val">${strings}</span><span class="stat-lbl">${t.strings}</span></div>
+          <div class="stat-card"><span class="stat-val">${spec.panPerStr}</span><span class="stat-lbl">${t.panelsPerStr}</span></div>
+          <div class="stat-card"><span class="stat-val">${panels}</span><span class="stat-lbl">${t.totalPanels} (3Ø)</span></div>
+          <div class="stat-card"><span class="stat-val">${design}</span><span class="stat-lbl">${t.design}</span></div>
+        </div>`;
+
+      planRows+=`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+        <span style="width:22px;height:22px;background:${phaseBg};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:${phaseColor};flex-shrink:0">${sysIdx}</span>
+        <span style="font-size:13px;color:var(--text);font-weight:600">${phaseLabel} ${g.rpm} RPM — ${rec.hp} HP (${rec.current}A) VFD &nbsp;→&nbsp; <span style="color:var(--primary)">${design} = ${panels} Panels</span></span>
+      </div>`;
+    }
+  });
+
+  // ── Summary stat cards (above blur zone) ──
+  document.getElementById('mm-stats').innerHTML=`
+    <div class="stat-card"><span class="stat-val">${n}</span><span class="stat-lbl">${t.totalMotors}</span></div>
+    <div class="stat-card"><span class="stat-val">${totalKW.toFixed(2)} kW</span><span class="stat-lbl">${t.motorLoad}</span></div>
+    <div class="stat-card"><span class="stat-val">~${estSolar} kW</span><span class="stat-lbl">${t.estSolar}</span></div>
+    <div class="stat-card"><span class="stat-val">${totalVFDs}</span><span class="stat-lbl">${t.totalVfds}</span></div>
+    <div class="stat-card"><span class="stat-val">${grandPanels}</span><span class="stat-lbl">${t.totalPanels}</span></div>
+  `;
+
+  // ── Quick summary banner ──
+  const groupCount=sortedGroups.length;
+  const summaryBanner=`
+    <div style="background:linear-gradient(135deg,#EFF6FF,#F0FDF4);border:1px solid #BFDBFE;border-radius:12px;padding:16px 20px;margin-bottom:22px;display:flex;align-items:flex-start;gap:12px">
+      <span style="font-size:20px;flex-shrink:0">💡</span>
+      <div>
+        <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px">${groupCount} VFD System${groupCount>1?'s':''} — Grouped by Phase + RPM</div>
+        <div style="font-size:13px;color:var(--muted)">${t.totalPanels}: <strong style="color:var(--primary)">${grandPanels}</strong> &nbsp;|&nbsp; ${t.totalVfds}: <strong style="color:var(--primary)">${totalVFDs}</strong> &nbsp;|&nbsp; ${t.estSolar}: <strong style="color:var(--primary)">${estSolar} kW</strong></div>
+      </div>
+    </div>`;
+
+  // ── Final system plan box ──
+  const finalPlanBox=`
+    <div style="background:#FFFFFF;border:2px solid var(--primary);border-radius:14px;padding:22px 20px;margin-top:4px">
+      <div style="font-size:15px;font-weight:800;color:var(--primary);margin-bottom:16px;display:flex;align-items:center;gap:8px">${t.finalPlan}</div>
+      <div class="stat-grid" style="margin-bottom:18px">
+        <div class="stat-card"><span class="stat-val">${totalSystems}</span><span class="stat-lbl">${t.totalSystems}</span></div>
+        <div class="stat-card"><span class="stat-val">${totalVFDs}</span><span class="stat-lbl">${t.totalVfds}</span></div>
+        <div class="stat-card"><span class="stat-val">${grandPanels}</span><span class="stat-lbl">${t.totalPanels}</span></div>
+        <div class="stat-card"><span class="stat-val">${totalStrings}</span><span class="stat-lbl">${t.totalStrings}</span></div>
+      </div>
+      <div style="background:#F9FAFB;border-radius:10px;padding:4px 14px 4px">
+        ${planRows}
+        <div style="padding:10px 0 2px;font-size:12px;color:var(--muted);font-weight:500">✅ Ready for installation quote &nbsp;|&nbsp; Based on real-world VFD sizing</div>
+      </div>
+    </div>`;
+
+  document.getElementById('mm-vfd-advice').innerHTML=summaryBanner+blurHTML+finalPlanBox;
+  document.getElementById('mm-vfd-cards').innerHTML='';
+
+  capturedData.multiMotor={motors,totalKW,totalCurrAll,estSolar,
+    groups:sortedGroups,grandPanels,totalVFDs,totalSystems};
+  document.getElementById('mm-results').style.display='block';
+  document.getElementById('mm-lock').style.display='flex';
+  document.getElementById('mm-blur').classList.remove('unlocked');
+}
+
+// ════════════════════════════════════
+// LEAD UNLOCK (ROI + VFD + Multi Motor)
+// ════════════════════════════════════
+function submitLead(tab){
+  const ids={
+    roi:['r-name','r-phone','r-email'],
+    vfd:['v-name','v-phone','v-email'],
+    mm :['mm-name','mm-phone','mm-email']
+  };
+  const locks={roi:'roi-lock',vfd:'vfd-lock',mm:'mm-lock'};
+  const blurs ={roi:'roi-blur',vfd:'vfd-blur',mm:'mm-blur'};
+
+  if(!validateLead(ids[tab]))return;
+  const [nameId,phoneId,emailId]=ids[tab];
+  const name =document.getElementById(nameId).value.trim();
+  const phone=document.getElementById(phoneId).value.trim();
+  const email=document.getElementById(emailId).value.trim();
+
+  const cd=capturedData;
+
+  // ── ROI fields ──
+  const roi_cost    = document.getElementById('r-cost')?.value    || cd.roi?.cost    || '';
+  const roi_size    = document.getElementById('r-size')?.value    || cd.roi?.size    || '';
+  const roi_rate    = document.getElementById('r-rate')?.value    || cd.roi?.rate    || '';
+  const roi_payback = cd.roi?.payback || '';
+  const roi_profit  = cd.roi?.profit  || '';
+  const roi_roi     = cd.roi?.roi     || '';
+
+  // ── VFD fields ──
+  const vfd_hp      = document.getElementById('v-hp')?.value      || cd.vfd?.hp      || '';
+  const vfd_curr    = document.getElementById('v-curr')?.value    || cd.vfd?.curr    || '';
+  const vfd_mtype   = document.getElementById('v-mtype')?.value   || cd.vfd?.mtype   || '';
+  const vfd_pantype = document.getElementById('v-pantype')?.value || cd.vfd?.panType || '';
+  const vfd_strings   = cd.vfd?.strings     || '';
+  const vfd_panels    = cd.vfd?.totalPanels || '';
+  const vfd_panPerStr = cd.vfd?.panPerStr   || '';
+  const vfd_sysKW     = (vfd_panels && vfd_pantype)
+    ? ((+vfd_panels*(vfd_pantype==='725'?725:550))/1000).toFixed(2) : '';
+  const vfd_design    = cd.vfd?.designDisplay || '';
+
+  // ── Multi-motor fields ──
+  const mm=cd.multiMotor||{};
+  const mm_count    = mm.motors?.length           || '';
+  const mm_totalKW  = mm.totalKW?.toFixed(2)      || '';
+  const mm_totalA   = mm.totalCurrAll?.toFixed(1) || '';
+  const mm_solar    = mm.estSolar                 || '';
+  const mm_panels   = mm.grandPanels              || '';
+  const mm_vfds     = mm.totalVFDs                || '';
+  const mm_systems  = mm.totalSystems             || '';
+  // Summarise RPM groups for CRM (e.g. "3Ph-1440RPM:9.5A(2mot) | 1Ph-2880RPM:7A(1mot)")
+  const mm_groups   = mm.groups
+    ? mm.groups.map(g=>`${g.phase==='three'?'3Ph':'1Ph'}-${g.rpm}RPM:${g.totalCurrent.toFixed(1)}A(${g.motors}mot)`).join(' | ')
+    : '';
+
+  // ── ROI yearly savings ──
+  const roi_yearly  = cd.roi?.yearlySavings || '';
+
+  const data={
+    timestamp          : new Date().toISOString(),
+    active_tab         : tab,
+    system_type        : tab,          // CRM alias for active_tab
+    name, phone, email,
+    // ROI
+    roi_cost, roi_size_kw: roi_size, roi_rate_per_unit: roi_rate,
+    roi_payback_yrs: roi_payback, roi_profit, roi_total_roi_pct: roi_roi,
+    roi_yearly_savings : roi_yearly,
+    // VFD
+    vfd_hp,
+    vfd_current: vfd_curr || cd.vfd?.vfdReqA || '', // fallback to vfdReqA
+    vfd_motor_type: vfd_mtype,
+    vfd_panel_type: vfd_pantype,
+    vfd_strings, vfd_panels_per_string: vfd_panPerStr,
+    vfd_total_panels: vfd_panels, vfd_system_kw: vfd_sysKW, vfd_design,
+    // Multi Motor (v18 RPM-grouped fields)
+    mm_motor_count  : mm_count,
+    mm_total_motors : mm.motors?.length || mm_count || '', // CRM alias
+    mm_total_kw: mm_totalKW,
+    mm_total_current: mm_totalA, mm_est_solar_kw: mm_solar,
+    mm_total_panels: mm_panels, mm_total_vfds: mm_vfds,
+    mm_total_systems: mm_systems, mm_rpm_groups: mm_groups
+  };
+
+  sendToSheet(data);
+
+  document.getElementById(locks[tab]).style.display='none';
+  document.getElementById(blurs[tab]).classList.add('unlocked');
+
+  if(tab==='roi'&&roiRows.length)
+    setTimeout(()=>drawROIChart(+document.getElementById('r-cost').value),120);
+}
+
+
+function updateLanguage(){
+  const t=TEXT[currentLang]||TEXT.en;
+  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+
+  // ── Tabs ──
+  const tabs=document.querySelectorAll('.tab');
+  if(tabs[0]) tabs[0].innerText='☀️ '+t.roi;
+  if(tabs[1]) tabs[1].innerText='⚙️ '+t.vfd;
+  if(tabs[2]) tabs[2].innerText='🔧 '+t.multi;
+
+  // ── Calculate buttons ──
+  set('calc-btn-roi', t.calculate+' →');
+  set('calc-btn-vfd', t.calculate+' →');
+  set('calc-btn-mm',  t.calculate+' →');
+
+  // ── ROI form labels ──
+  set('label-cost',    t.cost);
+  set('label-gst',     t.gst);
+  set('label-size',    t.size);
+  set('label-rate',    t.rate);
+  set('label-tariff',  t.tariff);
+  set('label-psh',     t.psh);
+  set('label-losses',  t.losses);
+  set('label-maint',   t.maint);
+
+  // ── VFD / MM form labels ──
+  set('label-mtype',       t.mtype);
+  set('label-hp',          t.hp);
+  set('label-current',     t.current);
+  set('label-pantype-vfd', t.panelTypeLabel);
+  set('label-num-motors',  t.numMotors);
+  set('label-pantype-mm',  t.panelTypeLabel);
+
+  // ── Lock popup titles & descriptions (by ID for precision) ──
+  set('lock-title-roi', t.viewResult);
+  set('lock-desc-roi',  t.enterDetails);
+  set('lock-title-vfd', t.viewResult);
+  set('lock-desc-vfd',  t.enterDetails);
+  set('lock-title-mm',  t.viewResult);
+  set('lock-desc-mm',   t.enterDetails);
+
+  // ── Lock popup unlock buttons ──
+  set('lock-btn-roi', t.viewResult+' →');
+  set('lock-btn-vfd', t.viewResult+' →');
+  set('lock-btn-mm',  t.viewResult+' →');
+
+  // ── Lock form field labels (shared across all 3 popups) ──
+  document.querySelectorAll('.lock-form label[for-key="fullName"]').forEach(el=>el.textContent=t.fullName);
+  document.querySelectorAll('.lock-form label[for-key="phone"]').forEach(el=>el.textContent=t.phone);
+  document.querySelectorAll('.lock-form label[for-key="email"]').forEach(el=>el.textContent=t.email);
+
+  // ── Rebuild motor blocks so Phase label updates ──
+  if(typeof buildMotorBlocks==='function') buildMotorBlocks();
+}
+
+document.getElementById('lang-switch').addEventListener('change',function(){
+  currentLang=this.value;
+  localStorage.setItem('appLang',currentLang);
+  updateLanguage();
+});
+
+const savedLang=localStorage.getItem('appLang')||'en';
+currentLang=savedLang;
+document.getElementById('lang-switch').value=savedLang;
+updateLanguage();
+</script>
+
+<footer style="text-align:center;padding:28px 24px;border-top:1px solid var(--border);margin-top:40px;background:#FFFFFF">
+  <div style="font-size:15px;font-weight:800;color:var(--primary);margin-bottom:4px">☀️ Solar Calculator Pro</div>
+  <div style="font-size:12px;color:var(--muted)">Smart Solar & VFD Design Tool — Built for professionals &amp; sales teams</div>
+</footer>
+</body>
+</html>
